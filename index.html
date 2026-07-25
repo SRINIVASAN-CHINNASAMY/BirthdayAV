@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Our Journey</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,51 +13,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.2/confetti.browser.min.js"></script>
 
 <style>
-/* =====================================================================
-   EDIT YOUR CONTENT — everything you'd want to personalize lives in the
-   big CONFIG object near the top of the <script> at the bottom of this
-   file: names, the proposal note, the birthday message, cover titles,
-   your photos and your song. Nothing below CONFIG needs to change.
-
-   QUICK MAP OF WHAT TO EDIT WHERE (all inside CONFIG, in the <script>):
-   - CONFIG.gate                -> the "ask a friend's name" question, tip,
-                                    accepted names and their two responses
-   - CONFIG.backgroundMusicSrc  -> optional whole-site background music file
-   - CONFIG.pageBackgrounds     -> optional full-page background image per page
-   - CONFIG.photos              -> your gallery images + captions
-   - CONFIG.galleryMusicSrc     -> music that plays under the photo gallery
-   - CONFIG.musicTrack          -> "Our Song" title / artist / audio file
-   - CONFIG.finalMessage/Sign   -> the closing birthday message + signature
-   - every other CONFIG.* field -> the wording shown on that specific page
-
-   ADDING YOUR OWN PHOTOS & MUSIC:
-   This file now expects your media to live in a local "assets" folder
-   next to this HTML file, so it works reliably on GitHub / GitHub Pages
-   (no more Google Drive links, which Google actively blocks for audio).
-   Folder layout expected:
-     assets/
-       images/
-         photo-01.jpg ... photo-10.jpg   (the 10 gallery photos)
-         gate-background.jpg             (optional, gate page background)
-         finale-background.jpg           (optional, finale page background)
-       audio/
-         gallery-music.mp3               (plays during the photo gallery)
-         our-song.mp3                    (the "Our Song" page track)
-         background-music.mp3            (optional, whole-site music)
-   Just drop files in with those exact names (or update the filenames in
-   CONFIG below to match whatever you name your files) and push to GitHub.
-
-   NOTE ON BACKGROUNDS: there's no real photo behind each page — this
-   build has no image-generation tool available, so instead every page
-   gets a procedurally drawn "painterly glow" scene: a soft 3D icon
-   (heart / cake / frame / vinyl / firework) rendered with Three.js,
-   resting on a glass hexagonal pedestal, floating in a blurred field
-   of glowing bokeh and faint connecting lines — the same soft-glow,
-   shallow-depth-of-field mood you described, generated in code rather
-   than a static picture. Fill in CONFIG.pageBackgrounds with your own
-   photo URL for any page and it will be used instead automatically.
-===================================================================== */
-
 :root{
   --rose-deep:#1a040a;
   --wine:#33101c;
@@ -72,13 +27,13 @@
   --shadow:0 20px 60px rgba(0,0,0,0.45);
   --ease:cubic-bezier(.22,1,.36,1);
 }
-*{margin:0;padding:0;box-sizing:border-box;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;width:100%;overscroll-behavior:none;}
-body{font-family:'Cormorant Garamond',serif;background:var(--rose-deep);color:var(--cream);overflow:hidden;perspective:1600px;}
+body{font-family:'Cormorant Garamond',serif;background:var(--rose-deep);color:var(--cream);overflow:hidden;perspective:1600px;touch-action:manipulation;}
 h1,h2,h3,.display{font-family:'Playfair Display',serif;letter-spacing:.01em;}
 .ui-font{font-family:'Inter',sans-serif;}
 ::selection{background:var(--gold);color:var(--rose-deep);}
-button{font-family:'Inter',sans-serif;cursor:pointer;border:none;background:none;color:inherit;}
+button{font-family:'Inter',sans-serif;cursor:pointer;border:none;background:none;color:inherit;touch-action:manipulation;}
 button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--gold);outline-offset:3px;}
 img{max-width:100%;display:block;}
 
@@ -96,12 +51,14 @@ img{max-width:100%;display:block;}
 .screen{
   position:fixed; inset:0; z-index:1;
   display:flex; align-items:center; justify-content:center; flex-direction:column;
-  padding:6vh 6vw;
+  padding:calc(env(safe-area-inset-top) + 4vh) calc(env(safe-area-inset-right) + 5vw) calc(env(safe-area-inset-bottom) + 4vh) calc(env(safe-area-inset-left) + 5vw);
   opacity:0; pointer-events:none;
   transform:translateY(46px) scale(0.95);
   transform-origin:50% 100%;
   transition:opacity .85s var(--ease), transform .85s var(--ease);
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .screen.active{opacity:1; pointer-events:auto; transform:translateY(0) scale(1); z-index:5;}
 .screen.leaving{transform:translateY(-40px) scale(0.96); opacity:0; z-index:4;}
@@ -113,7 +70,7 @@ img{max-width:100%;display:block;}
 @keyframes bokehFloat{0%{transform:translateY(0) translateX(0);}50%{transform:translateY(-24px) translateX(14px);}100%{transform:translateY(0) translateX(0);}}
 
 /* ---- cover screens ---- */
-.cover-content{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;}
+.cover-content{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; margin:auto 0;}
 .icon-stage{position:relative; width:230px; height:230px; margin-bottom:2px; display:flex; align-items:center; justify-content:center;}
 .icon-stage canvas{position:relative; z-index:2; filter:drop-shadow(0 12px 26px rgba(0,0,0,0.45)) drop-shadow(0 0 44px rgba(255,217,142,0.35));}
 .hex-pedestal{
@@ -125,8 +82,8 @@ img{max-width:100%;display:block;}
   box-shadow:0 24px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.25);
   opacity:.9;
 }
-.cover-content h1{font-size:clamp(32px,6vw,58px); min-height:1.2em;}
-.cover-content .cover-sub{font-size:18px; color:var(--champagne); opacity:.9; min-height:1.6em; font-style:italic; max-width:560px;}
+.cover-content h1{font-size:clamp(28px,6vw,58px); min-height:1.2em;}
+.cover-content .cover-sub{font-size:clamp(15px,2.5vw,18px); color:var(--champagne); opacity:.9; min-height:1.6em; font-style:italic; max-width:560px;}
 .cover-content .enter-btn{margin-top:26px;}
 .cover-content .cover-hint{margin-top:14px; display:block; font-size:11px; letter-spacing:.25em; text-transform:uppercase; opacity:.5; animation:pulseHint 2.2s ease-in-out infinite;}
 .cover-content .reveal-group{margin-top:10px;}
@@ -134,11 +91,11 @@ img{max-width:100%;display:block;}
 .typing-cursor{display:inline-block;width:2px;height:0.95em;background:var(--gold);margin-left:2px;vertical-align:-2px;animation:blink 1s steps(1) infinite;}
 @keyframes blink{50%{opacity:0;}}
 
-/* ============================ REVEAL-AFTER-TYPING (buttons only appear once the writing is done) ============================ */
+/* ============================ REVEAL-AFTER-TYPING ============================ */
 .reveal-group{opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .6s var(--ease), transform .6s var(--ease);}
 .reveal-group.show{opacity:1;transform:translateY(0);pointer-events:auto;}
 
-/* ============================ GATE SCREEN (asks a friend's name before the site opens) ============================ */
+/* ============================ GATE SCREEN ============================ */
 .gate-screen{z-index:20;}
 .gate-tip{font-size:13px;color:var(--champagne);opacity:.7;margin-top:10px;font-style:italic;}
 .gate-input-row{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;}
@@ -148,18 +105,13 @@ img{max-width:100%;display:block;}
 .gate-response{margin-top:22px;font-size:18px;color:var(--gold);min-height:1.6em;font-style:italic;}
 
 /* ============================ PER-PAGE BACKGROUND IMAGE LAYER ============================ */
-/* If you set an image for a page in CONFIG.pageBackgrounds, it is drawn full-bleed
-   here, behind that page's content, with a soft dark gradient over it so text stays
-   readable. Leave a page's entry blank/"" to keep the default glowing design. */
 #page-bg-layer{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;opacity:0;transition:opacity 1.1s var(--ease);pointer-events:none;}
 #page-bg-layer.show{opacity:.5;}
 #page-bg-layer::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(26,4,10,0.55), rgba(51,16,28,0.72) 55%, rgba(26,4,10,0.88));}
 
 /* ============================ GLOBAL BACKGROUND MUSIC TOGGLE ============================ */
-/* Shows on every page (top-left) whenever CONFIG.backgroundMusicSrc is filled in. */
-#bgMusicToggle{position:fixed;top:22px;left:22px;z-index:200;font-size:12px;letter-spacing:.05em;padding:10px 18px;border-radius:100px;background:rgba(26,4,10,0.5);border:1px solid var(--glass-brd);color:var(--cream);backdrop-filter:blur(8px);transition:transform .3s var(--ease), border-color .3s var(--ease);}
+#bgMusicToggle{position:fixed;top:calc(env(safe-area-inset-top) + 16px);left:calc(env(safe-area-inset-left) + 16px);z-index:200;font-size:12px;letter-spacing:.05em;padding:10px 18px;border-radius:100px;background:rgba(26,4,10,0.65);border:1px solid var(--glass-brd);color:var(--cream);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transition:transform .3s var(--ease), border-color .3s var(--ease);}
 #bgMusicToggle:hover{transform:translateY(-2px);border-color:var(--gold);}
-@media (max-width:640px){#bgMusicToggle{top:14px;left:14px;padding:8px 14px;font-size:11px;}}
 
 /* ============================ NAV DOTS ============================ */
 #nav-dots{position:fixed; right:22px; top:50%; transform:translateY(-50%); z-index:150; display:flex; flex-direction:column; gap:16px;}
@@ -172,7 +124,7 @@ img{max-width:100%;display:block;}
 /* ============================ SHARED UI ============================ */
 .eyebrow{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--champagne);opacity:.85;margin-bottom:14px;display:block;}
 .glass-panel{background:var(--glass-bg);border:1px solid var(--glass-brd);border-radius:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow), inset 0 1px 0 rgba(255,255,255,0.06);}
-.btn{padding:15px 38px;border-radius:100px;font-size:14px;letter-spacing:.05em;font-weight:500;transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .35s var(--ease);}
+.btn{padding:15px 38px;border-radius:100px;font-size:14px;letter-spacing:.05em;font-weight:500;transition:transform .35s var(--ease), box-shadow .35s var(--ease), background .35s var(--ease);min-height:44px;display:inline-flex;align-items:center;justify-content:center;}
 .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:var(--ink);box-shadow:0 8px 30px rgba(255,217,142,0.35);}
 .btn-gold:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 14px 40px rgba(255,217,142,0.5);}
 .btn-ghost{background:transparent;border:1px solid var(--glass-brd);color:var(--cream);}
@@ -181,7 +133,7 @@ img{max-width:100%;display:block;}
 .shimmer-text{background:linear-gradient(100deg,var(--gold-dim) 20%,var(--gold) 40%,#fff8e6 50%,var(--gold) 60%,var(--gold-dim) 80%);background-size:250% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 5s linear infinite;}
 @keyframes shimmer{to{background-position:-250% center;}}
 
-/* ============================ BIG EMOJI REACTION ============================ */
+/* ============================ REACTION & MASCOT ============================ */
 #bigEmojiOverlay{position:fixed;inset:0;z-index:300;display:flex;align-items:center;justify-content:center;pointer-events:none;}
 .big-emoji{opacity:0;font-size:20vw;filter:drop-shadow(0 20px 40px rgba(0,0,0,0.5));}
 .big-emoji.show{animation:bigEmojiPop 1.7s var(--ease) forwards;}
@@ -197,29 +149,23 @@ img{max-width:100%;display:block;}
 @keyframes dance{0%,100%{transform:translateY(0) rotate(-6deg);}50%{transform:translateY(-18px) rotate(6deg);}}
 
 /* ============================ PROPOSAL SCREEN ============================ */
-.scroll-frame{width:min(560px,90vw);max-height:78vh;overflow-y:auto;padding:56px 46px 46px;position:relative;z-index:2;}
-.scroll-frame::-webkit-scrollbar{width:6px;}
+.scroll-frame{width:min(560px,92vw);max-height:68vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:42px 32px 32px;position:relative;z-index:2;margin:auto 0;}
+.scroll-frame::-webkit-scrollbar{width:5px;}
 .scroll-frame::-webkit-scrollbar-thumb{background:var(--glass-brd);border-radius:100px;}
 .scroll-frame::before{content:"";position:absolute;inset:-1px;border-radius:22px;padding:1px;background:linear-gradient(160deg,rgba(255,217,142,.6),transparent 40%,rgba(242,166,179,.35));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;}
-#proposal-question{font-size:clamp(26px,4.2vw,40px);font-weight:600;margin:6px 0 18px;line-height:1.2;min-height:2.4em;}
-#proposal-note{font-size:19px;line-height:1.75;color:rgba(247,236,217,0.88);min-height:5.5em;font-style:italic;}
-/* Buttons are pinned to the top-right of the whole screen (not inside the
-   scrolling note panel) so a long note can never push them out of view. */
-.proposal-buttons{position:absolute;top:26px;right:26px;margin-top:0;display:flex;flex-direction:column;align-items:flex-end;gap:10px;height:auto;z-index:50;}
-.proposal-buttons .btn{padding:12px 26px;font-size:13px;}
-#btn-no{position:relative;transition:transform .35s var(--ease);}
-#no-wink{display:block;text-align:right;font-size:13px;color:var(--blush);opacity:0;transition:opacity .3s var(--ease);white-space:nowrap;max-width:200px;}
+#proposal-question{font-size:clamp(22px,4vw,38px);font-weight:600;margin:6px 0 16px;line-height:1.2;min-height:2.4em;}
+#proposal-note{font-size:clamp(16px,2.2vw,19px);line-height:1.75;color:rgba(247,236,217,0.88);min-height:5.5em;font-style:italic;}
+
+.proposal-buttons{margin-top:20px;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:12px;z-index:50;position:relative;}
+.proposal-buttons .btn{padding:12px 24px;font-size:13px;}
+#btn-no{position:relative;transition:transform .25s var(--ease);}
+#no-wink{display:block;text-align:center;font-size:12px;color:var(--blush);opacity:0;transition:opacity .3s var(--ease);white-space:nowrap;width:100%;margin-top:6px;}
 #no-wink.show{opacity:1;}
-@media (max-width:640px){
-  .proposal-buttons{top:14px;right:14px;gap:8px;}
-  .proposal-buttons .btn{padding:9px 18px;font-size:11px;}
-  #no-wink{font-size:11px;max-width:150px;}
-}
-#yes-reveal{margin-top:26px;font-size:20px;color:var(--gold);opacity:0;transform:translateY(10px);transition:all .6s var(--ease);}
+#yes-reveal{margin-top:20px;font-size:18px;color:var(--gold);opacity:0;transform:translateY(10px);transition:all .6s var(--ease);text-align:center;}
 #yes-reveal.show{opacity:1;transform:translateY(0);}
 
 /* ============================ CAKE SCREEN ============================ */
-.cake-stage{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;}
+.cake-stage{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:100%;margin:auto 0;}
 .pedestal{width:min(230px,50vw);height:16px;border-radius:50%;background:radial-gradient(ellipse at center,rgba(232,199,126,0.5),rgba(232,199,126,0.05) 70%);margin-top:6px;filter:blur(1px);}
 .cake{position:relative;display:flex;flex-direction:column;align-items:center;filter:drop-shadow(0 30px 40px rgba(0,0,0,0.5));transform-style:preserve-3d;animation:cakeSway 7s ease-in-out infinite;}
 @keyframes cakeSway{0%,100%{transform:rotateY(-4deg);}50%{transform:rotateY(4deg);}}
@@ -228,22 +174,22 @@ img{max-width:100%;display:block;}
 .tier1{width:250px;height:80px;} .tier2{width:190px;height:70px;margin-top:-4px;} .tier3{width:130px;height:60px;margin-top:-4px;}
 .drip{position:absolute;bottom:-10px;left:0;right:0;height:20px;background:radial-gradient(circle at 15% 0, transparent 8px, var(--gold) 9px) 0 0/30px 20px repeat-x;opacity:.85;}
 .candles{display:flex;gap:14px;margin-bottom:-6px;position:relative;z-index:2;}
-.candle{width:8px;height:46px;background:repeating-linear-gradient(180deg,var(--blush) 0 6px,#fff 6px 12px);border-radius:3px;position:relative;cursor:pointer;transform-origin:bottom center;}
+.candle{width:10px;height:46px;background:repeating-linear-gradient(180deg,var(--blush) 0 6px,#fff 6px 12px);border-radius:3px;position:relative;cursor:pointer;transform-origin:bottom center;touch-action:manipulation;}
 .candle .flame{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:12px;height:20px;background:radial-gradient(ellipse at 50% 70%,#fff6c9 0%,#ffcf5a 35%,#ff8a3d 70%,transparent 75%);border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;animation:flicker 1.6s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(255,180,80,0.9));transition:opacity .3s, transform .3s;}
 .candle.out .flame{opacity:0;transform:translateX(-50%) scale(.3);}
 .candle .smoke{position:absolute;top:-26px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:rgba(230,230,230,0.5);opacity:0;pointer-events:none;}
 .candle.out .smoke{animation:smoke-rise 1.4s ease-out forwards;}
 @keyframes flicker{0%,100%{transform:translateX(-50%) scale(1) rotate(-2deg);}50%{transform:translateX(-50%) scale(1.12,0.94) rotate(3deg);}}
 @keyframes smoke-rise{0%{opacity:.6;transform:translate(-50%,0) scale(1);}100%{opacity:0;transform:translate(-50%,-40px) scale(4);}}
-.cake-caption{margin-top:30px;text-align:center;}
+.cake-caption{margin-top:24px;text-align:center;}
 .cake-caption h2{font-size:clamp(22px,3.4vw,30px);margin-bottom:8px;min-height:1.3em;}
 #cake-hint{color:var(--champagne);font-size:15px;opacity:.85;min-height:1.4em;}
-#cake-cta{margin-top:26px;opacity:0;transform:translateY(14px);transition:all .6s var(--ease);pointer-events:none;}
+#cake-cta{margin-top:20px;opacity:0;transform:translateY(14px);transition:all .6s var(--ease);pointer-events:none;}
 #cake-cta.show{opacity:1;transform:translateY(0);pointer-events:auto;}
 
-/* ============================ GALLERY / CINEMATIC SLIDESHOW ============================ */
+/* ============================ GALLERY / SLIDESHOW ============================ */
 #gallery{padding:0;}
-.slideshow{position:relative;z-index:2;position:absolute;inset:0;overflow:hidden;background:#050102;}
+.slideshow{position:absolute;inset:0;overflow:hidden;background:#050102;z-index:2;}
 .slide-layer{
   position:absolute;inset:0;
   background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#050102;
@@ -251,71 +197,70 @@ img{max-width:100%;display:block;}
   color:var(--champagne); font-family:'Inter',sans-serif; text-align:center; padding:10vw;
   opacity:0; will-change:transform,filter,opacity;
 }
-/* slow continuous zoom applied while a photo is on screen, so the gallery
-   plays like a running video (a "Ken Burns" pan/zoom) instead of a static slide */
 .slide-layer.is-placeholder{padding:10vw;}
 .slide-layer.is-placeholder{opacity:1;}
 .slide-layer svg{width:52px;height:52px;opacity:.75;}
-.slide-scrim{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(0deg, rgba(5,1,2,0.8) 0%, rgba(5,1,2,0.05) 30%, transparent 52%, rgba(5,1,2,0.4) 100%);}
-.slide-caption{position:absolute;left:0;right:0;bottom:112px;text-align:center;z-index:4;font-size:clamp(19px,2.8vw,28px);padding:0 8vw;min-height:1.5em;text-shadow:0 4px 20px rgba(0,0,0,0.7);opacity:0;transition:opacity .3s ease;}
-.slide-counter{position:absolute;top:26px;left:50%;transform:translateX(-50%);z-index:4;font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.2em;color:var(--champagne);opacity:.85;}
-.slide-controls{position:absolute;bottom:32px;left:0;right:0;display:flex;justify-content:center;align-items:center;gap:16px;z-index:4;}
-.slide-btn{width:44px;height:44px;border-radius:50%;background:rgba(26,4,10,0.5);border:1px solid var(--glass-brd);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:15px;backdrop-filter:blur(6px);transition:transform .3s var(--ease), background .3s;}
-.slide-btn:hover{transform:scale(1.1);background:rgba(26,4,10,0.75);}
-.slide-progress{position:absolute;top:0;left:0;right:0;height:3px;z-index:4;display:flex;gap:3px;padding:10px 14px 0;}
+.slide-scrim{position:absolute;inset:0;z-index:3;pointer-events:none;background:linear-gradient(0deg, rgba(5,1,2,0.85) 0%, rgba(5,1,2,0.05) 30%, transparent 52%, rgba(5,1,2,0.4) 100%);}
+.slide-caption{position:absolute;left:0;right:0;bottom:100px;text-align:center;z-index:4;font-size:clamp(16px,2.8vw,26px);padding:0 6vw;min-height:1.5em;text-shadow:0 4px 20px rgba(0,0,0,0.7);opacity:0;transition:opacity .3s ease;}
+.slide-counter{position:absolute;top:calc(env(safe-area-inset-top) + 20px);left:50%;transform:translateX(-50%);z-index:4;font-family:'Inter',sans-serif;font-size:12px;letter-spacing:.2em;color:var(--champagne);opacity:.85;}
+.slide-controls{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 24px);left:0;right:0;display:flex;justify-content:center;align-items:center;gap:16px;z-index:4;}
+.slide-btn{width:46px;height:46px;border-radius:50%;background:rgba(26,4,10,0.65);border:1px solid var(--glass-brd);color:var(--cream);display:flex;align-items:center;justify-content:center;font-size:16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:transform .3s var(--ease), background .3s;}
+.slide-btn:hover{transform:scale(1.1);background:rgba(26,4,10,0.85);}
+.slide-progress{position:absolute;top:0;left:0;right:0;height:3px;z-index:4;display:flex;gap:3px;padding:calc(env(safe-area-inset-top) + 8px) 14px 0;}
 .slide-progress i{flex:1;height:3px;background:rgba(255,255,255,0.22);border-radius:2px;overflow:hidden;position:relative;font-style:normal;}
 .slide-progress i b{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--gold);display:block;}
 .slide-progress i.done b{width:100%;transition:none;}
-.checkpoint-overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(10,2,5,0.72);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .6s var(--ease);text-align:center;}
+.checkpoint-overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;background:rgba(10,2,5,0.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .6s var(--ease);text-align:center;}
 .checkpoint-overlay.show{opacity:1;pointer-events:auto;}
 .checkpoint-overlay .inner{max-width:480px;padding:20px;}
-.checkpoint-overlay p{font-size:24px;margin-bottom:24px;color:var(--cream);min-height:1.4em;}
-#checkpoint-response{margin-top:18px;font-size:16px;color:var(--blush);min-height:1.4em;}
+.checkpoint-overlay p{font-size:22px;margin-bottom:20px;color:var(--cream);min-height:1.4em;}
+#checkpoint-response{margin-top:16px;font-size:16px;color:var(--blush);min-height:1.4em;}
 
 /* ============================ MUSIC SCREEN ============================ */
-.player-shell{position:relative;z-index:2;width:min(420px,90vw);padding:40px 36px 34px;text-align:center;}
-.vinyl-wrap{position:relative;width:210px;height:210px;margin:0 auto 26px;}
+.player-shell{position:relative;z-index:2;width:min(420px,92vw);padding:36px 28px 28px;text-align:center;margin:auto 0;}
+.vinyl-wrap{position:relative;width:180px;height:180px;margin:0 auto 20px;}
 .vinyl{width:100%;height:100%;border-radius:50%;background:repeating-radial-gradient(circle at center,#0c0c0e 0 2px,#1b1b1f 2px 4px),radial-gradient(circle at 35% 30%,rgba(255,255,255,0.12),transparent 45%);box-shadow:0 20px 50px rgba(0,0,0,0.6),inset 0 0 0 6px rgba(255,255,255,0.03);position:relative;animation:spin 6s linear infinite;animation-play-state:paused;}
 .vinyl.playing{animation-play-state:running;}
-.vinyl-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,var(--gold) 0%,var(--gold-dim) 75%);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.4);}
-.vinyl-label::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--ink);}
+.vinyl-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;background:radial-gradient(circle,var(--gold) 0%,var(--gold-dim) 75%);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,0.4);}
+.vinyl-label::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink);}
 @keyframes spin{to{transform:rotate(360deg);}}
-.tonearm{position:absolute;top:-14px;right:-6px;width:80px;height:80px;transform-origin:80% 20%;transform:rotate(-28deg);transition:transform .6s var(--ease);pointer-events:none;}
+.tonearm{position:absolute;top:-12px;right:-4px;width:70px;height:70px;transform-origin:80% 20%;transform:rotate(-28deg);transition:transform .6s var(--ease);pointer-events:none;}
 .tonearm.playing{transform:rotate(0deg);}
-.tonearm::before{content:"";position:absolute;top:14px;left:6px;width:5px;height:70px;border-radius:3px;background:linear-gradient(180deg,var(--gold),var(--gold-dim));transform:rotate(35deg);transform-origin:top center;}
-.tonearm::after{content:"";position:absolute;top:8px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--gold-dim);}
-#track-title{font-size:23px;margin-top:4px;min-height:1.3em;}
-#track-artist{font-size:15px;color:var(--champagne);opacity:.8;margin-bottom:20px;min-height:1.4em;}
-.viz{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:44px;margin:6px 0 24px;}
-.viz span{width:4px;border-radius:2px;background:linear-gradient(180deg,var(--gold),var(--gold-dim));height:6px;transition:height .12s ease-out;}
-.player-controls{display:flex;align-items:center;justify-content:center;gap:22px;}
-.ctrl-btn{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:var(--ink);box-shadow:0 10px 26px rgba(255,217,142,0.35);font-size:18px;transition:transform .3s var(--ease);}
+.tonearm::before{content:"";position:absolute;top:12px;left:6px;width:4px;height:60px;border-radius:3px;background:linear-gradient(180deg,var(--gold),var(--gold-dim));transform:rotate(35deg);transform-origin:top center;}
+.tonearm::after{content:"";position:absolute;top:6px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--gold-dim);}
+#track-title{font-size:20px;margin-top:4px;min-height:1.3em;}
+#track-artist{font-size:14px;color:var(--champagne);opacity:.8;margin-bottom:16px;min-height:1.4em;}
+.viz{display:flex;align-items:flex-end;justify-content:center;gap:3px;height:36px;margin:6px 0 18px;}
+.viz span{width:3px;border-radius:2px;background:linear-gradient(180deg,var(--gold),var(--gold-dim));height:6px;transition:height .12s ease-out;}
+.player-controls{display:flex;align-items:center;justify-content:center;gap:18px;}
+.ctrl-btn{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--gold),var(--gold-dim));color:var(--ink);box-shadow:0 10px 26px rgba(255,217,142,0.35);font-size:18px;transition:transform .3s var(--ease);}
 .ctrl-btn:hover{transform:scale(1.08);}
 .ctrl-btn.small{width:38px;height:38px;background:transparent;color:var(--cream);box-shadow:none;border:1px solid var(--glass-brd);}
-.seek-row{display:flex;align-items:center;gap:10px;margin-top:22px;font-family:'Inter',sans-serif;font-size:11px;color:var(--champagne);}
-#seek{flex:1;appearance:none;height:3px;border-radius:2px;background:rgba(232,199,126,0.25);outline:none;}
-#seek::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:var(--gold);cursor:pointer;}
-.music-note{margin-top:16px;font-size:13px;font-family:'Inter',sans-serif;color:rgba(247,236,217,0.5);}
+.seek-row{display:flex;align-items:center;gap:8px;margin-top:18px;font-family:'Inter',sans-serif;font-size:11px;color:var(--champagne);}
+#seek{flex:1;appearance:none;height:4px;border-radius:2px;background:rgba(232,199,126,0.25);outline:none;}
+#seek::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);cursor:pointer;}
+.music-note{margin-top:14px;font-size:12px;font-family:'Inter',sans-serif;color:rgba(247,236,217,0.5);}
 
 /* ============================ FINALE SCREEN ============================ */
 #fireworks-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;}
 .balloon{position:absolute;bottom:-140px;width:46px;height:58px;border-radius:50% 50% 50% 50% / 58% 58% 42% 42%;animation:rise linear infinite;opacity:.9;}
 .balloon::after{content:"";position:absolute;left:50%;bottom:-46px;width:1px;height:46px;background:rgba(255,255,255,0.25);transform:translateX(-50%);}
 @keyframes rise{0%{transform:translateY(0) translateX(0);}50%{transform:translateY(-60vh) translateX(20px);}100%{transform:translateY(-125vh) translateX(-10px);}}
-.finale-content{position:relative;z-index:2;text-align:center;}
-#hb-banner{font-size:clamp(38px,7.6vw,80px);font-weight:700;margin-bottom:22px;line-height:1.05;min-height:1.1em;}
-.final-tablet{width:min(560px,90vw);margin:20px auto 0;padding:32px 38px;}
-#final-message{font-size:19px;line-height:1.8;font-style:italic;color:rgba(247,236,217,0.92);min-height:5em;}
-.final-sign{margin-top:18px;font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:20px;min-height:1.4em;}
-#replay-btn{margin-top:32px;}
+.finale-content{position:relative;z-index:2;text-align:center;margin:auto 0;width:100%;}
+#hb-banner{font-size:clamp(32px,7.6vw,72px);font-weight:700;margin-bottom:16px;line-height:1.05;min-height:1.1em;}
+.final-tablet{width:min(560px,92vw);margin:16px auto 0;padding:26px 24px;max-height:55vh;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+#final-message{font-size:clamp(15px,2.2vw,18px);line-height:1.75;font-style:italic;color:rgba(247,236,217,0.92);min-height:5em;}
+.final-sign{margin-top:16px;font-family:'Playfair Display',serif;font-style:italic;color:var(--gold);font-size:18px;min-height:1.4em;}
+#replay-btn{margin-top:24px;}
 
 @media (max-width:640px){
-  .glass-panel{border-radius:16px;}
-  .scroll-frame{padding:42px 24px 34px;}
-  .tier1{width:190px;height:64px;} .tier2{width:145px;height:54px;} .tier3{width:100px;height:46px;}
-  .slide-caption{bottom:128px;}
-  .icon-stage{width:150px;height:150px;}
-  .hex-pedestal{width:120px;height:68px;}
+  .glass-panel{border-radius:18px;}
+  .scroll-frame{padding:28px 20px 24px;}
+  .tier1{width:180px;height:60px;} .tier2{width:138px;height:50px;} .tier3{width:96px;height:42px;}
+  .slide-caption{bottom:90px;}
+  .icon-stage{width:140px;height:140px;}
+  .hex-pedestal{width:110px;height:60px;}
+  .btn{padding:12px 28px;font-size:13px;}
 }
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:0.001ms !important;animation-iteration-count:1 !important;transition-duration:0.001ms !important;}
@@ -326,11 +271,9 @@ img{max-width:100%;display:block;}
 
 <canvas id="bg-canvas"></canvas>
 <div id="bg-gradient"></div>
-<!-- per-page custom background image (see CONFIG.pageBackgrounds to set one per page) -->
 <div id="page-bg-layer" aria-hidden="true"></div>
 <div id="bigEmojiOverlay" aria-hidden="true"><span class="big-emoji" id="bigEmoji"></span></div>
 
-<!-- OPTIONAL whole-site background music. Hidden automatically if CONFIG.backgroundMusicSrc is empty. -->
 <button id="bgMusicToggle" class="ui-font" aria-label="Toggle background music">🔈 Music</button>
 <audio id="bgMusicAudio" preload="none" loop></audio>
 
@@ -345,8 +288,7 @@ img{max-width:100%;display:block;}
 <div class="mascot" id="mascot" aria-hidden="true">🥰</div>
 <div class="dance-row" id="danceRow" aria-hidden="true"><span>🧸</span><span>🐶</span><span>🐱</span></div>
 
-<!-- ============================== GATE (asks a friend's name before opening the gift) ============================== -->
-<!-- Edit the question, tip, name lists and responses in CONFIG.gate near the top of the script below. -->
+<!-- ============================== GATE ============================== -->
 <section id="gate" class="screen gate-screen">
   <div class="cover-content">
     <span class="eyebrow">before we begin</span>
@@ -379,14 +321,12 @@ img{max-width:100%;display:block;}
     <span class="quill-line eyebrow" style="margin-bottom:6px;">read slowly</span>
     <h1 id="proposal-question" class="shimmer-text"></h1>
     <p id="proposal-note"></p>
-    <p id="yes-reveal">Every word of it, forever. 🌻</p>
-  </div>
-  <!-- Pinned to the screen's top-right corner (not inside the scrolling note
-       panel above) so it stays visible even when the note is long. -->
-  <div class="proposal-buttons reveal-group" id="proposalButtons">
-    <button id="btn-yes" class="btn btn-gold">Yes, always</button>
-    <button id="btn-no" class="btn btn-ghost">Not yet…</button>
+    <div class="proposal-buttons reveal-group" id="proposalButtons">
+      <button id="btn-yes" class="btn btn-gold">Yes, always</button>
+      <button id="btn-no" class="btn btn-ghost">Not yet…</button>
+    </div>
     <span id="no-wink"></span>
+    <p id="yes-reveal">Every word of it, forever. 🌻</p>
   </div>
 </section>
 
@@ -436,7 +376,7 @@ img{max-width:100%;display:block;}
   </div>
 </section>
 
-<!-- ============================== GALLERY / CINEMATIC SLIDESHOW ============================== -->
+<!-- ============================== GALLERY ============================== -->
 <section id="gallery" class="screen">
   <div class="slideshow" id="slideshow">
     <div class="slide-layer" id="slideA"></div>
@@ -539,52 +479,18 @@ img{max-width:100%;display:block;}
 </section>
 
 <script>
-/* =====================================================================
-   ============================  C O N F I G  =========================
-===================================================================== */
 const CONFIG = {
-
-  /* ---------------------------------------------------------------------
-     GATE — the very first thing shown, before the site itself opens.
-     Edit the question / tip / name lists / responses here.
-     Matching is case-insensitive and matches if the typed word CONTAINS
-     one of the listed names (so "Sri" also matches "Srinivasan here!").
-  --------------------------------------------------------------------- */
   gate:{
     question:"Ask your friend's help to open this gift 🎁",
     tip:"Its your friends name",
-    // if the typed name matches one of these -> the "happy" response
     correctNames:["srii","sri","srinivasan"],
     correctResponse:"Ohhh Great! 😄",
-    // if the typed name matches one of these -> the "sulky" response
     wrongNames:["moni","monika","monica"],
     wrongResponse:"Ohhh... then am I not your best friend? 😒",
-    // shown if the name matches neither list — they get to try again
     retryResponse:"Hmm, that doesn't sound right... ask them again? 🤔",
-    unlockDelay:1600 // ms to show the response before moving to the landing page
+    unlockDelay:1600
   },
-
-  /* ---------------------------------------------------------------------
-     BACKGROUND MUSIC (plays quietly across the whole site).
-     Leave empty ("") to hide the toggle button completely.
-     This is separate from the dedicated "Our Song" music page and the
-     gallery's own background track below.
-     Put the audio file inside assets/audio/ in the GitHub repo and
-     reference it here with its relative path, e.g.
-     "assets/audio/background-music.mp3". Any browser-supported audio
-     format works (MP3 is the safest choice for compatibility). The code
-     below fails gracefully: if a track can't load, playback controls
-     just stay quietly idle instead of breaking the rest of the page.
-  --------------------------------------------------------------------- */
-  // leave blank, or point to a file inside assets/audio/ e.g. "assets/audio/background-music.mp3"
   backgroundMusicSrc:"",
-
-  /* ---------------------------------------------------------------------
-     PER-PAGE BACKGROUND IMAGES.
-     Paste an image URL for any page to use it as that page's full-screen
-     background (with a soft dark overlay so text stays readable).
-     Leave "" to keep the default glowing procedural design for that page.
-  --------------------------------------------------------------------- */
   pageBackgrounds:{
     'gate':"assets/images/gate-background",
     'cover-proposal':"", 'proposal':"",
@@ -593,7 +499,6 @@ const CONFIG = {
     'cover-music':"", 'music':"",
     'cover-finale':"", 'finale':"assets/images/finale-background"
   },
-
   covers: {
     proposal:{ title:"A Note, Before Anything Else", subtitle:"Small Things that I wish you to Remember.", button:"Begin", hint:"click to begin" },
     cake:    { title:"The Birthday Cake", subtitle:"One candle at a time.", button:"Light the Candles", hint:"tap to continue" },
@@ -601,26 +506,16 @@ const CONFIG = {
     music:   { title:"Your Fav Song", subtitle:"For you, on repeat.", button:"Press Play", hint:"tap to listen" },
     finale:  { title:"One Last Thing", subtitle:"The Small Final Note For You.", button:"See the Note", hint:"tap to continue" }
   },
-
-  // shown above "HAPPY BIRTHDAY!" on the very last page
   finaleEyebrow:"just for you",
-
   proposalQuestion:"Will you be my forever?",
   proposalNote:"Hiiii My Dear Girl ❤️🥹, Wish you a veryyy veryyy Happyy Birthday daa (Kuttachi)! 🎉🥳 I genuinely hope this year brings you lots of happiness, peace, success, good health, and everything you've been wishing for. ✨💖 Have an amazing year ahead! 🌸First of all, thank you so much for being a part of my life. ❤️ One thing I really wanted to tell you is... I truly admire the way you're handling everything in your life now. 💯✨ The maturity you've developed over the years is something I genuinely respect.. 😊🌼 And... thank you for being the best friend I've ever had. 🤗❤️ Can you believe it? 😭 It's been almost 10 years since I first met you! ⏳❤️ Time flew so fast, but every memory with you is still fresh in my mind. In these years(Mostly Last year), you've given me so many beautiful memories. 🥹💖 You have been my... Listener,Motivator,Support System,Comedy Piece,😒 Sometimes my Irritator too! (Adhuvum romba dedication-oda! 🤭😂) But honestly... life would've been so different without you. ❤️ If you weren't in my life, I'm sure I wouldn't have learned many things that I know today. You taught me so much without even realizing it. Every conversation, every fight, every laugh, every silly moment... everything has become a beautiful memory for me. 🥹✨ You've gifted me so many things over the years. ❤️ So this time, I thought... let me make a small gift for you with lots of love. 🫶",
   yesEmoji:"💍",
   noEmoji:"😉",
   noWinkText:"no other option… sorry 😉",
-
   cakeTitle:"Make a wish",
   cakeHint:"Make a wish and blow it out",
   candleCount:5,
   cakeDoneEmoji:"🎉",
-
-  // 10 photos supported out of the box. Put your image files inside the
-  // assets/images/ folder in the GitHub repo, named exactly photo-01
-  // through photo-10 (any picture format works — .jpg, .jpeg, .png, .webp,
-  // .gif — the site automatically finds whichever extension you used, so
-  // you never need to touch this list). Update each caption below too.
   photos:[
     { src:"assets/images/photo-01", caption:"1st Photo I collected" },
     { src:"assets/images/photo-02", caption:"With Moni" },
@@ -633,32 +528,21 @@ const CONFIG = {
     { src:"assets/images/photo-09", caption:"US" },
     { src:"assets/images/photo-10", caption:"Angel" }
   ],
-  // background music while photos play — put the audio file in assets/audio/
   galleryMusicSrc:"assets/audio/gallery-music.mp3",
-  slideSeconds:2.7,              // each photo's on-screen time, transition included
-
+  slideSeconds:2.7,
   checkpointQuestion:"Have you enjoyed this so far?",
   checkpointYesEmoji:"❤️",
   checkpointNoEmoji:"😉",
   checkpointYesResponse:"so glad. more memories, coming right up.",
   checkpointNoResponse:"okay, we'll make more memories later...",
-
-  // put your song's audio file at assets/audio/our-song.mp3
   musicTrack:{ title:"Add Your Song Title", artist:"Add the artist name", src:"assets/audio/our-song.mp3" },
   musicPlaceholderNote:"Add your song's audio file in CONFIG to bring this to life.",
-  // the "One Last Thing" button on the music page only appears once the
-  // song has played for at least this many seconds (or finished, or if no
-  // song file was ever added — so nobody gets stuck).
   minListenSeconds:15,
-
   finalMessage:"I have complete confidence that you will achieve everything you truly want in life. I believe this journey has taught you so many valuable lessons and has made you stronger in ways you may not even realize.As you always say, Do what your heart feels is right. Keep believing in that. If you are genuinely happy and satisfied with whatever you choose to do, no matter what it is, I'll always be happy for you. I just hope that one day, time will be in our favor.I haven't written a letter Physically , Hope you will accept this instead of that.Once again,Iniya Pirandhanaal Vaazhthukkal, Darlo! ❤️",
   finalSign:"— always yours",
   replayEmoji:"🎆"
 };
 
-/* =====================================================================
-   TYPEWRITER — text appears letter by letter, as if being written live.
-===================================================================== */
 function typeInto(el, text, speed=26, onDone){
   el.textContent = "";
   const cursor = document.createElement("span");
@@ -685,9 +569,6 @@ function typeSequence(triples, gap=250, onAllDone){
   })();
 }
 
-/* =====================================================================
-   BIG CENTERED EMOJI REACTION
-===================================================================== */
 function showBigEmoji(emoji){
   const el = document.getElementById('bigEmoji');
   el.classList.remove('show');
@@ -697,10 +578,6 @@ function showBigEmoji(emoji){
   setTimeout(()=> el.classList.remove('show'), 1750);
 }
 
-/* =====================================================================
-   PROCEDURAL "PAINTERLY GLOW" ATMOSPHERE — bokeh field + faint network
-   lines behind every screen, colour-matched to that section's mood.
-===================================================================== */
 function buildAtmos(screenEl, colorHex, count){
   const atmos = document.createElement('div');
   atmos.className = 'atmos';
@@ -739,9 +616,6 @@ document.querySelectorAll('.screen').forEach(s=>{
   buildAtmos(s, ZONE_COLORS[zone], 6);
 });
 
-/* =====================================================================
-   SCREEN / NAVIGATION STATE MACHINE — dynamic, response-driven paging.
-===================================================================== */
 const TOPIC_MAP = {
   'gate':'cover-proposal',
   'cover-proposal':'cover-proposal','proposal':'cover-proposal',
@@ -754,12 +628,6 @@ const BG_ZONES = { 'gate':0,'cover-proposal':0,'proposal':0,'cover-cake':1,'cake
 let currentScreenId = 'gate';
 const enteredScreens = new Set();
 
-/* Accepts any common picture format. If a CONFIG image path is given WITH
-   an extension (e.g. "assets/images/photo-01.png"), that exact file is
-   used. If given WITHOUT an extension (e.g. "assets/images/photo-01"),
-   this automatically tries each of these extensions in turn until one
-   exists — so you can drop in a .jpg, .jpeg, .png, .webp, .gif, .avif,
-   or .bmp file without editing CONFIG or matching a specific extension. */
 const IMAGE_EXTENSIONS=['jpg','jpeg','png','webp','gif','avif','bmp','JPG','JPEG','PNG','WEBP'];
 function resolveImageSrc(basePath, onFound, onFail){
   if(/\.[a-zA-Z0-9]+$/.test(basePath)){
@@ -781,10 +649,7 @@ function resolveImageSrc(basePath, onFound, onFail){
   })();
 }
 
-/* Applies a custom full-page background image for the given screen if one
-   was set in CONFIG.pageBackgrounds, otherwise falls back to the default
-   procedurally-drawn design. */
-const _bgImageCache = {}; // avoids re-resolving the same background image path more than once
+const _bgImageCache = {};
 function updatePageBackground(id){
   const layer = document.getElementById('page-bg-layer');
   const path = CONFIG.pageBackgrounds && CONFIG.pageBackgrounds[id];
@@ -792,17 +657,12 @@ function updatePageBackground(id){
   const cached = _bgImageCache[path];
   if(cached === 'fail'){ layer.classList.remove('show'); return; }
   if(cached){ layer.style.backgroundImage = `url("${cached}")`; layer.classList.add('show'); return; }
-  // resolve first (trying multiple picture formats if needed) so a broken/
-  // missing file just quietly falls back to the default glowing design
-  // instead of showing a blank page
   resolveImageSrc(path,
     (foundUrl)=>{ _bgImageCache[path]=foundUrl; if(currentScreenId===id){ layer.style.backgroundImage = `url("${foundUrl}")`; layer.classList.add('show'); } },
     ()=>{ _bgImageCache[path]='fail'; if(currentScreenId===id) layer.classList.remove('show'); }
   );
 }
 
-// Pauses every <audio> element on the page. Called at the very start of
-// every page transition so no music/song can ever carry over to the next page.
 function stopAllAudio(){
   document.querySelectorAll('audio').forEach(a=>{ if(!a.paused) a.pause(); });
 }
@@ -828,9 +688,6 @@ document.querySelectorAll('#nav-dots button').forEach(d=> d.addEventListener('cl
 document.getElementById('gate').classList.add('active');
 updatePageBackground('gate');
 
-/* =====================================================================
-   CONFETTI HELPERS
-===================================================================== */
 function burstHearts(originY=0.6){
   if(!window.confetti) return;
   const defaults = { spread:70, ticks:180, gravity:0.7, decay:0.93, startVelocity:32 };
@@ -848,9 +705,6 @@ function goldConfettiCannon(){
   })();
 }
 
-/* =====================================================================
-   THREE.JS — GLOBAL AMBIENT PARTICLE FIELD
-===================================================================== */
 let scrollProgressForBg = 0;
 (function initParticles(){
   const canvas = document.getElementById('bg-canvas');
@@ -899,12 +753,9 @@ let scrollProgressForBg = 0;
     requestAnimationFrame(tick);
   }
   tick();
-  window.addEventListener('resize', ()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
+  window.addEventListener('resize', ()=>{ camera.aspect=window.innerWidth/window.innerHeight; camera.updatePerspectiveMatrix?.() || camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
 })();
 
-/* =====================================================================
-   THREE.JS — ROTATING 3D "PAINTERLY" HERO ICONS ON A GLASS PEDESTAL
-===================================================================== */
 function mount3DIcon(canvasId, type){
   const canvas = document.getElementById(canvasId);
   if(!window.THREE || !canvas || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -980,14 +831,10 @@ mount3DIcon('icon-gallery','gallery');
 mount3DIcon('icon-music','vinyl');
 mount3DIcon('icon-finale','firework');
 
-/* =====================================================================
-   ON-ENTER HANDLERS
-===================================================================== */
 function onScreenFirstEnter(id){
   if(id==='gate'){
     typeSequence([[document.getElementById('gateQuestion'),CONFIG.gate.question,30],[document.getElementById('gateTip'),CONFIG.gate.tip,22]], 250, ()=>{
       document.getElementById('gateInputRow').classList.add('show');
-      document.getElementById('gateInput').focus();
     });
   }
   if(id==='cover-proposal'){
@@ -1029,9 +876,6 @@ function onScreenFirstEnter(id){
 onScreenFirstEnter('gate');
 enteredScreens.add('gate');
 
-/* =====================================================================
-   GATE LOGIC — "ask your friend's help to open this gift"
-===================================================================== */
 (function(){
   const input=document.getElementById('gateInput'), submit=document.getElementById('gateSubmit'), resp=document.getElementById('gateResponse');
   let unlocked=false;
@@ -1063,30 +907,36 @@ enteredScreens.add('gate');
   input.addEventListener('keydown', e=>{ if(e.key==='Enter') submitGate(); });
 })();
 
-/* =====================================================================
-   PROPOSAL LOGIC
-===================================================================== */
 (function(){
   const btnYes=document.getElementById('btn-yes'), btnNo=document.getElementById('btn-no');
   const wink=document.getElementById('no-wink'), yesReveal=document.getElementById('yes-reveal'), mascot=document.getElementById('mascot');
-  function evade(){ const x=(Math.random()-0.5)*180, y=(Math.random()-0.5)*52; btnNo.style.transform=`translate(${x}px, ${y}px)`; }
+
+  function evade(){
+    const x = (Math.random() - 0.5) * 220;
+    const y = (Math.random() - 0.5) * 120;
+    btnNo.style.transform = `translate(${x}px, ${y}px)`;
+  }
+
   btnNo.addEventListener('mouseenter', evade);
+  btnNo.addEventListener('mouseover', evade);
   btnNo.addEventListener('touchstart', e=>{ e.preventDefault(); evade(); }, {passive:false});
-  btnNo.addEventListener('click', ()=>{
+  btnNo.addEventListener('click', (e)=>{
+    e.preventDefault();
     showBigEmoji(CONFIG.noEmoji); wink.classList.add('show'); evade();
     setTimeout(()=>{ wink.classList.remove('show'); btnNo.style.transform='translate(0,0)'; }, 1500);
   });
+
   btnYes.addEventListener('click', ()=>{
-    showBigEmoji(CONFIG.yesEmoji); burstHearts(0.55);
-    yesReveal.classList.add('show'); mascot.classList.add('show');
+    showBigEmoji(CONFIG.yesEmoji); 
+    burstHearts(0.55);
+    yesReveal.classList.add('show'); 
+    mascot.classList.add('show');
+    
     setTimeout(()=> mascot.classList.remove('show'), 2600);
-    setTimeout(()=> goTo('cover-cake'), 2200);
+    setTimeout(()=> goTo('cover-cake'), 2000);
   });
 })();
 
-/* =====================================================================
-   CAKE LOGIC
-===================================================================== */
 let cakeInitialized=false;
 function initCake(){
   if(cakeInitialized) return; cakeInitialized=true;
@@ -1105,41 +955,13 @@ function initCake(){
     dance.classList.add('show'); setTimeout(()=>dance.classList.remove('show'),3200);
     setTimeout(()=>cta.classList.add('show'),500);
   }
-  candles.forEach(c=> c.addEventListener('click', ()=>{ if(c.classList.contains('out')) return; c.classList.add('out'); lit--; if(lit===0) finish(); }));
-  if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
-    let micArmed=false;
-    document.getElementById('cake').addEventListener('mouseenter', async ()=>{
-      if(micArmed||finished) return; micArmed=true;
-      try{
-        const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-        const ctx=new (window.AudioContext||window.webkitAudioContext)();
-        const src=ctx.createMediaStreamSource(stream);
-        const analyser=ctx.createAnalyser(); analyser.fftSize=512;
-        src.connect(analyser);
-        const data=new Uint8Array(analyser.frequencyBinCount);
-        let strong=0;
-        (function poll(){
-          if(finished){ stream.getTracks().forEach(t=>t.stop()); return; }
-          analyser.getByteFrequencyData(data);
-          const low=data.slice(0,10).reduce((a,b)=>a+b,0)/10;
-          if(low>140) strong++; else strong=Math.max(0,strong-1);
-          if(strong>8){
-            const next=wrap.querySelector('.candle:not(.out)');
-            if(next){ next.classList.add('out'); lit--; strong=0; if(lit===0){ finish(); stream.getTracks().forEach(t=>t.stop()); } }
-          }
-          requestAnimationFrame(poll);
-        })();
-      }catch(err){}
-    }, {once:true});
-  }
+  candles.forEach(c=> {
+    const handleOut = ()=>{ if(c.classList.contains('out')) return; c.classList.add('out'); lit--; if(lit===0) finish(); };
+    c.addEventListener('click', handleOut);
+    c.addEventListener('touchstart', (e)=>{ e.preventDefault(); handleOut(); }, {passive:false});
+  });
 }
 
-/* =====================================================================
-   GALLERY — CINEMATIC 4-TRANSITION SLIDESHOW ENGINE
-   whip-pan (motion blur), hard-cut, zoom-in punch, and a sliding keyframe
-   swipe — cycling automatically across photos. Each photo always displays
-   at its true, fully-visible size (no cropping/zooming past 100%).
-===================================================================== */
 let galleryInitialized=false;
 function initGallery(){
   if(galleryInitialized) return; galleryInitialized=true;
@@ -1155,9 +977,6 @@ function initGallery(){
   photos.forEach(()=>{ const i=document.createElement('i'); i.innerHTML='<b></b>'; progressWrap.appendChild(i); });
   const bars=progressWrap.querySelectorAll('i');
 
-  // 'zoom-out' was removed — it briefly scaled photos past 100%, which
-  // clipped their edges. The remaining transitions never scale a photo
-  // beyond its normal, fully-visible size.
   const TYPES=['whip-pan','hard-cut','zoom-in','slide'];
   const HOLD_MS = CONFIG.slideSeconds*1000;
   const TRANS_MS = Math.min(420, HOLD_MS*0.4);
@@ -1165,10 +984,7 @@ function initGallery(){
   function placeholderHTML(cap){
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5.5-5.5L9 17"/></svg><span>${cap||'Add a photo'}</span>`;
   }
-  const _photoCache={}; // remembers which photo urls have already resolved / failed
-  // Any common picture format works here — resolveImageSrc (defined earlier,
-  // shared with page backgrounds) automatically tries .jpg/.jpeg/.png/.webp/
-  // .gif/.avif/.bmp for any CONFIG.photos entry given without an extension.
+  const _photoCache={};
   function paint(layerEl, photo){
     if(!photo.src){
       layerEl.style.backgroundImage = 'none';
@@ -1183,15 +999,12 @@ function initGallery(){
       layerEl.innerHTML = placeholderHTML(photo.caption || 'Photo unavailable');
       return;
     }
-    if(state){ // already-resolved actual URL string
+    if(state){
       layerEl.style.backgroundImage = `url("${state}")`;
       layerEl.classList.remove('is-placeholder');
       layerEl.innerHTML = '';
       return;
     }
-    // first time seeing this photo — resolve its real file (trying multiple
-    // extensions if needed) so a broken/missing file shows the placeholder
-    // tile instead of an empty full-screen slide
     layerEl.style.backgroundImage = 'none';
     layerEl.classList.add('is-placeholder');
     layerEl.innerHTML = placeholderHTML(photo.caption);
@@ -1208,10 +1021,6 @@ function initGallery(){
     );
   }
   function resetLayerStyle(el){ el.style.transition='none'; el.style.filter='none'; }
-
-  // Ken Burns continuous zoom removed — it slowly scaled photos past 100%
-  // over each slide's on-screen time, which clipped their edges by the end.
-  // Photos now stay at their true, fully-visible size the whole time they're shown.
 
   let idx=-1, playing=true, timer=null;
 
@@ -1319,8 +1128,6 @@ function initGallery(){
   if(musicSrc){
     galleryAudio.src=musicSrc; galleryAudio.volume=0.55;
     galleryAudio.play().then(()=>{ soundOn=true; soundBtn.textContent='🔊'; }).catch(()=>{ soundOn=false; soundBtn.textContent='🔈'; });
-    // if the track can't actually load (e.g. a blocked Drive link), dim the
-    // button so it doesn't sit there implying music that will never play
     galleryAudio.addEventListener('error', ()=>{ soundBtn.style.opacity=0.4; soundBtn.title='Music unavailable'; }, { once:true });
   }else{ soundBtn.style.opacity=0.4; }
   soundBtn.addEventListener('click', ()=>{
@@ -1329,16 +1136,12 @@ function initGallery(){
     else{ galleryAudio.play().then(()=>{ soundOn=true; soundBtn.textContent='🔊'; }).catch(()=>{}); }
   });
 
-  // first photo, no transition
   paint(layers[activeLayer], photos[0]);
   layers[activeLayer].style.opacity=1; layers[activeLayer].style.zIndex=2; layers[activeLayer].style.transform='none'; layers[activeLayer].style.filter='none';
   idx=0; showCaption(photos[0].caption); counter.textContent=`1 / ${photos.length}`; setBar(0);
   resetTimer();
 }
 
-/* =====================================================================
-   MUSIC PLAYER LOGIC
-===================================================================== */
 let playerInitialized=false;
 function initPlayer(){
   if(playerInitialized) return; playerInitialized=true;
@@ -1358,8 +1161,6 @@ function initPlayer(){
     const minListen=(CONFIG.minListenSeconds||15)*1000;
     audio.addEventListener('timeupdate', ()=>{ if(audio.currentTime*1000 >= Math.min(minListen, (audio.duration||minListen)*1000*0.9)) revealMusicCta(); });
     audio.addEventListener('ended', revealMusicCta);
-    // if the track can't load at all (e.g. a blocked Drive link), don't
-    // leave the visitor stuck — disable play and reveal the next-page button
     audio.addEventListener('error', ()=>{
       btnPlay.disabled=true; btnPlay.style.opacity=0.5; btnPlay.style.cursor='not-allowed';
       note.style.display='block'; typeInto(note, CONFIG.musicPlaceholderNote, 20, revealMusicCta);
@@ -1384,8 +1185,8 @@ function initPlayer(){
   let playing=false;
   function renderViz(){
     if(!playing) return;
-    if(analyser){ analyser.getByteFrequencyData(dataArr); bars.forEach((bar,i)=>{ const v=dataArr[i%dataArr.length]||0; bar.style.height=Math.max(6,(v/255)*44)+'px'; }); }
-    else{ bars.forEach(bar=>{ bar.style.height=(6+Math.random()*30)+'px'; }); }
+    if(analyser){ analyser.getByteFrequencyData(dataArr); bars.forEach((bar,i)=>{ const v=dataArr[i%dataArr.length]||0; bar.style.height=Math.max(6,(v/255)*36)+'px'; }); }
+    else{ bars.forEach(bar=>{ bar.style.height=(6+Math.random()*26)+'px'; }); }
     requestAnimationFrame(renderViz);
   }
   btnPlay.addEventListener('click', async ()=>{
@@ -1403,9 +1204,6 @@ function initPlayer(){
   btnMute.addEventListener('click', ()=>{ muted=!muted; audio.muted=muted; btnMute.textContent=muted?'🔇':'🔊'; });
 }
 
-/* =====================================================================
-   FINALE LOGIC
-===================================================================== */
 let finaleInitialized=false;
 function initFinale(){
   if(finaleInitialized) return; finaleInitialized=true;
@@ -1458,11 +1256,6 @@ function initFinale(){
   });
 }
 
-/* =====================================================================
-   WHOLE-SITE BACKGROUND MUSIC — separate from the "Our Song" music page
-   and the gallery's own track. Hidden automatically if CONFIG.backgroundMusicSrc
-   is left blank. Never autoplays (browsers block that); the visitor taps it on.
-===================================================================== */
 (function initBgMusic(){
   const btn=document.getElementById('bgMusicToggle'), audio=document.getElementById('bgMusicAudio');
   if(!CONFIG.backgroundMusicSrc){ btn.style.display='none'; return; }
