@@ -246,7 +246,7 @@ img{max-width:100%;display:block;}
 .slideshow{position:relative;z-index:2;position:absolute;inset:0;overflow:hidden;background:#050102;}
 .slide-layer{
   position:absolute;inset:0;
-  background-size:cover;background-position:center;background-repeat:no-repeat;
+  background-size:contain;background-position:center;background-repeat:no-repeat;background-color:#050102;
   display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;
   color:var(--champagne); font-family:'Inter',sans-serif; text-align:center; padding:10vw;
   opacity:0; will-change:transform,filter,opacity;
@@ -617,21 +617,21 @@ const CONFIG = {
   cakeDoneEmoji:"🎉",
 
   // 10 photos supported out of the box. Put your image files inside the
-  // assets/images/ folder in the GitHub repo, named exactly as below
-  // (photo-01.jpg through photo-10.jpg), and update each caption.
-  // JPG, PNG, or WEBP all work — just keep the filename (and extension)
-  // matching what's written here.
+  // assets/images/ folder in the GitHub repo, named exactly photo-01
+  // through photo-10 (any picture format works — .jpg, .jpeg, .png, .webp,
+  // .gif — the site automatically finds whichever extension you used, so
+  // you never need to touch this list). Update each caption below too.
   photos:[
-    { src:"assets/images/photo-01.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-02.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-03.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-04.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-05.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-06.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-07.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-08.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-09.jpg", caption:"Add a photo" },
-    { src:"assets/images/photo-10.jpg", caption:"Add a photo" }
+    { src:"assets/images/photo-01", caption:"Add a photo" },
+    { src:"assets/images/photo-02", caption:"Add a photo" },
+    { src:"assets/images/photo-03", caption:"Add a photo" },
+    { src:"assets/images/photo-04", caption:"Add a photo" },
+    { src:"assets/images/photo-05", caption:"Add a photo" },
+    { src:"assets/images/photo-06", caption:"Add a photo" },
+    { src:"assets/images/photo-07", caption:"Add a photo" },
+    { src:"assets/images/photo-08", caption:"Add a photo" },
+    { src:"assets/images/photo-09", caption:"Add a photo" },
+    { src:"assets/images/photo-10", caption:"Add a photo" }
   ],
   // background music while photos play — put the audio file in assets/audio/
   galleryMusicSrc:"assets/audio/gallery-music.mp3",
@@ -775,6 +775,7 @@ function updatePageBackground(id){
 function goTo(id){
   const next = document.getElementById(id);
   if(!next || id === currentScreenId) return;
+  const prevId = currentScreenId;
   const cur = document.getElementById(currentScreenId);
   if(cur){ cur.classList.remove('active'); cur.classList.add('leaving'); setTimeout(()=>cur.classList.remove('leaving'), 900); }
   next.classList.add('active');
@@ -782,6 +783,16 @@ function goTo(id){
   updateNavDots();
   updatePageBackground(id);
   document.getElementById('bg-gradient').style.filter = `hue-rotate(${ZONE_HUE[BG_ZONES[id]??0]}deg)`;
+  // Stop any music tied to the page we're leaving, so nothing keeps playing
+  // quietly in the background once you've moved on to the next page.
+  if(prevId==='gallery' && id!=='gallery'){
+    const gAudio=document.getElementById('galleryAudio');
+    if(gAudio && !gAudio.paused) gAudio.pause();
+  }
+  if(prevId==='music' && id!=='music'){
+    const songAudio=document.getElementById('audio');
+    if(songAudio && !songAudio.paused) songAudio.pause();
+  }
   // pause the whole-site background music while the dedicated song page is open
   const bgAudio = document.getElementById('bgMusicAudio');
   if(bgAudio && !bgAudio.paused && id==='music') bgAudio.pause();
@@ -1130,6 +1141,32 @@ function initGallery(){
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5.5-5.5L9 17"/></svg><span>${cap||'Add a photo'}</span>`;
   }
   const _photoCache={}; // remembers which photo urls have already loaded ok / failed
+  // Accepts any common picture format. If CONFIG.photos gives a path WITH an
+  // extension (e.g. "assets/images/photo-01.png"), that exact file is used.
+  // If it's given WITHOUT an extension (e.g. "assets/images/photo-01"), this
+  // automatically tries each of these extensions in turn until one exists —
+  // so you can drop in a .jpg, .png, .webp, .gif, whatever, without editing
+  // CONFIG at all.
+  const IMAGE_EXTENSIONS=['jpg','jpeg','png','webp','gif','avif','bmp','JPG','JPEG','PNG','WEBP'];
+  function resolvePhotoSrc(basePath, onFound, onFail){
+    if(/\.[a-zA-Z0-9]+$/.test(basePath)){
+      const test=new Image();
+      test.onload=()=>onFound(basePath);
+      test.onerror=onFail;
+      test.src=basePath;
+      return;
+    }
+    let i=0;
+    (function tryNext(){
+      if(i>=IMAGE_EXTENSIONS.length){ onFail(); return; }
+      const candidate=`${basePath}.${IMAGE_EXTENSIONS[i]}`;
+      i++;
+      const test=new Image();
+      test.onload=()=>onFound(candidate);
+      test.onerror=tryNext;
+      test.src=candidate;
+    })();
+  }
   function paint(layerEl, photo){
     if(!photo.src){
       layerEl.style.backgroundImage = 'none';
@@ -1138,28 +1175,35 @@ function initGallery(){
       return;
     }
     const state = _photoCache[photo.src];
-    if(state === 'ok'){
-      layerEl.style.backgroundImage = `url("${photo.src}")`;
-      layerEl.classList.remove('is-placeholder');
-      layerEl.innerHTML = '';
-      return;
-    }
     if(state === 'fail'){
       layerEl.style.backgroundImage = 'none';
       layerEl.classList.add('is-placeholder');
       layerEl.innerHTML = placeholderHTML(photo.caption || 'Photo unavailable');
       return;
     }
-    // first time seeing this url — test-load it so a broken/blocked Drive
-    // link shows the placeholder tile instead of an empty full-screen slide
+    if(state){ // already-resolved actual URL string
+      layerEl.style.backgroundImage = `url("${state}")`;
+      layerEl.classList.remove('is-placeholder');
+      layerEl.innerHTML = '';
+      return;
+    }
+    // first time seeing this photo — resolve its real file (trying multiple
+    // extensions if needed) so a broken/missing file shows the placeholder
+    // tile instead of an empty full-screen slide
     layerEl.style.backgroundImage = 'none';
     layerEl.classList.add('is-placeholder');
     layerEl.innerHTML = placeholderHTML(photo.caption);
-    const test = new Image();
-    test.onload = ()=>{ _photoCache[photo.src]='ok'; if(layerEl.dataset.src===photo.src){ layerEl.style.backgroundImage = `url("${photo.src}")`; layerEl.classList.remove('is-placeholder'); layerEl.innerHTML=''; } };
-    test.onerror = ()=>{ _photoCache[photo.src]='fail'; if(layerEl.dataset.src===photo.src){ layerEl.innerHTML = placeholderHTML(photo.caption || 'Photo unavailable'); } };
     layerEl.dataset.src = photo.src;
-    test.src = photo.src;
+    resolvePhotoSrc(photo.src,
+      (foundUrl)=>{
+        _photoCache[photo.src]=foundUrl;
+        if(layerEl.dataset.src===photo.src){ layerEl.style.backgroundImage = `url("${foundUrl}")`; layerEl.classList.remove('is-placeholder'); layerEl.innerHTML=''; }
+      },
+      ()=>{
+        _photoCache[photo.src]='fail';
+        if(layerEl.dataset.src===photo.src){ layerEl.innerHTML = placeholderHTML(photo.caption || 'Photo unavailable'); }
+      }
+    );
   }
   function resetLayerStyle(el){ el.style.transition='none'; el.style.filter='none'; }
 
