@@ -130,6 +130,21 @@ img{max-width:100%;display:block;}
 .screen.active{ pointer-events:auto; }
 /* while a screen is transitioning in/out it must not scroll-jack the page */
 .screen:not(.active){ overflow:hidden; }
+
+/* ============================ PERFORMANCE: PAUSE OFF-SCREEN CONTENT ============================
+   Every screen exists in the DOM the whole time (so transitions can fade
+   between them), but only one is ever meant to be visible. Without this,
+   every candle flicker, vinyl spin, shimmer-text sweep and glowing bokeh
+   blob across all 11 screens keeps animating and repainting forever in
+   the background — the actual cause of the lag/slowdown that gets worse
+   the further through the site you go. This pauses every CSS animation
+   and hides paint for a screen the moment it's no longer shown. */
+.screen:not(.active):not(.leaving){ visibility:hidden; }
+.screen:not(.active):not(.leaving) *,
+.screen:not(.active):not(.leaving) *::before,
+.screen:not(.active):not(.leaving) *::after{
+  animation-play-state:paused !important;
+}
 .screen.active{opacity:1; pointer-events:auto; transform:translateY(0) scale(1); z-index:5;}
 .screen.leaving{transform:translateY(-40px) scale(0.96); opacity:0; z-index:4;}
 
@@ -138,6 +153,7 @@ img{max-width:100%;display:block;}
 .atmos svg{position:absolute; inset:0; width:100%; height:100%; filter:blur(1.5px); opacity:.28;}
 .bokeh{position:absolute; border-radius:50%; filter:blur(20px); opacity:.4; animation:bokehFloat linear infinite;}
 @keyframes bokehFloat{0%{transform:translateY(0) translateX(0);}50%{transform:translateY(-24px) translateX(14px);}100%{transform:translateY(0) translateX(0);}}
+@media (max-width:700px){ .bokeh{ filter:blur(10px); } }
 
 /* ---- cover screens ---- */
 .cover-content{position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px;}
@@ -810,7 +826,7 @@ const ZONE_COLORS = ['#ffdc9e','#ffb37a','#f2a6b3','#e8c77e','#fff2c2'];
 const ZONE_HUE   = [0,-16,24,10,-6];
 document.querySelectorAll('.screen').forEach(s=>{
   const zone = ({'gate':0,'cover-proposal':0,'proposal':0,'cover-cake':1,'cake':1,'cover-gallery':2,'gallery':2,'cover-music':3,'music':3,'cover-finale':4,'finale':4})[s.id] ?? 0;
-  buildAtmos(s, ZONE_COLORS[zone], 6);
+  buildAtmos(s, ZONE_COLORS[zone], window.innerWidth < 700 ? 3 : 6);
 });
 
 /* =====================================================================
@@ -850,6 +866,13 @@ const BG_ZONES = { 'gate':0,'cover-proposal':0,'proposal':0,'cover-cake':1,'cake
 
 let currentScreenId = 'gate';
 const enteredScreens = new Set();
+
+/* Rough, cheap heuristic for "this is a budget/low-power device" — used to
+   scale back particle counts, disable antialiasing, and cap pixel ratio so
+   the site stays smooth on entry-level phones instead of lagging/crashing. */
+const LOW_POWER = (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4)
+  || (navigator.deviceMemory && navigator.deviceMemory <= 4)
+  || window.innerWidth < 480;
 
 /* Accepts any common picture format. If a CONFIG image path is given WITH
    an extension (e.g. "assets/images/photo-01.png"), that exact file is
@@ -952,13 +975,22 @@ let scrollProgressForBg = 0;
 (function initParticles(){
   const canvas = document.getElementById('bg-canvas');
   if(!window.THREE || matchMedia('(prefers-reduced-motion: reduce)').matches){ canvas.style.display='none'; return; }
-  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  // On very constrained devices, skip the WebGL ambient field entirely.
+  // It's purely decorative — the CSS gradient + per-screen bokeh glow
+  // already carry the mood — and this is the single biggest GPU cost on
+  // the page, running continuously behind every screen.
+  if(LOW_POWER && navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2){ canvas.style.display='none'; return; }
+  let renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:!LOW_POWER, powerPreference:'low-power'});
+  }catch(err){ canvas.style.display='none'; return; }
+  canvas.addEventListener('webglcontextlost', (e)=>{ e.preventDefault(); }, false);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW_POWER ? 1 : 2));
   renderer.setSize(window.innerWidth, window.innerHeight);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
   camera.position.z = 12;
-  const COUNT = window.innerWidth < 700 ? 380 : 800;
+  const COUNT = LOW_POWER ? 160 : (window.innerWidth < 700 ? 380 : 800);
   const positions = new Float32Array(COUNT*3);
   const speeds = new Float32Array(COUNT);
   for(let i=0;i<COUNT;i++){
@@ -981,6 +1013,8 @@ let scrollProgressForBg = 0;
   window.addEventListener('mousemove', e=>{ mouseX=(e.clientX/window.innerWidth-0.5); mouseY=(e.clientY/window.innerHeight-0.5); });
   const palette = ZONE_COLORS.map(c=> new THREE.Color(c));
   function tick(){
+    requestAnimationFrame(tick);
+    if(document.hidden) return; // don't burn battery/CPU while the tab is backgrounded
     const t = performance.now()*0.00005;
     const posAttr = geo.attributes.position;
     for(let i=0;i<COUNT;i++){ posAttr.array[i*3+1]+=speeds[i]*0.01; if(posAttr.array[i*3+1]>10) posAttr.array[i*3+1]=-10; }
@@ -993,7 +1027,6 @@ let scrollProgressForBg = 0;
     const i0=Math.floor(zoneF), i1=Math.min(i0+1,4), f=zoneF-i0;
     mat.color = palette[i0].clone().lerp(palette[i1], f);
     renderer.render(scene, camera);
-    requestAnimationFrame(tick);
   }
   tick();
   function handleResize(){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); }
@@ -1003,13 +1036,30 @@ let scrollProgressForBg = 0;
 
 /* =====================================================================
    THREE.JS — ROTATING 3D "PAINTERLY" HERO ICONS ON A GLASS PEDESTAL
+   Performance notes:
+   - Icons are now mounted lazily (only when their screen is first opened)
+     instead of all 5 being created the moment the page loads. That alone
+     removes 4 unnecessary WebGL contexts + render loops from every visit.
+   - Each icon's render loop checks whether its own screen is actually the
+     one on screen right now, and skips the (expensive) draw call entirely
+     otherwise, instead of endlessly rendering off-screen content forever.
+   - On phones / low-power devices we drop antialiasing and cap the pixel
+     ratio, which is normally the single biggest GPU cost on a mobile chip.
 ===================================================================== */
+const mountedIcons = {};
 function mount3DIcon(canvasId, type){
+  if(mountedIcons[canvasId]) return; // never mount the same icon twice
   const canvas = document.getElementById(canvasId);
   if(!window.THREE || !canvas || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+  mountedIcons[canvasId] = true;
+  const screenEl = canvas.closest('.screen');
+  let renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:!LOW_POWER, powerPreference:'low-power'});
+  }catch(err){ return; } // WebGL unavailable/blocked on this device — fail quietly, keep the rest of the site working
+  canvas.addEventListener('webglcontextlost', (e)=>{ e.preventDefault(); }, false);
   const size = canvas.clientWidth || 230;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, LOW_POWER ? 1 : 2));
   renderer.setSize(size, size, false);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 50);
@@ -1027,13 +1077,13 @@ function mount3DIcon(canvasId, type){
     shape.bezierCurveTo(-0.9,-0.2,0,-0.7,0,-1.3);
     shape.bezierCurveTo(0,-0.7,0.9,-0.2,0.9,0.45);
     shape.bezierCurveTo(0.9,1.2,0,1.1,0,0.6);
-    const geo = new THREE.ExtrudeGeometry(shape, {depth:0.5, bevelEnabled:true, bevelThickness:0.12, bevelSize:0.1, bevelSegments:4, curveSegments:24});
+    const geo = new THREE.ExtrudeGeometry(shape, {depth:0.5, bevelEnabled:true, bevelThickness:0.12, bevelSize:0.1, bevelSegments:LOW_POWER?10:24, curveSegments:LOW_POWER?12:24});
     geo.center();
     mesh = new THREE.Mesh(geo, goldMat);
   }else if(type==='cake'){
     const grp = new THREE.Group();
     [[1.4,0.5,0],[1.05,0.45,0.5],[0.7,0.4,0.95]].forEach(([r,h,y])=>{
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.05,h,28), goldMat); m.position.y=y; grp.add(m);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.05,h,LOW_POWER?16:28), goldMat); m.position.y=y; grp.add(m);
     });
     for(let i=0;i<5;i++){
       const c = new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,0.35,8), blushMat);
@@ -1049,8 +1099,8 @@ function mount3DIcon(canvasId, type){
     mesh = grp;
   }else if(type==='vinyl'){
     const grp = new THREE.Group();
-    grp.add(new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,0.08,48), new THREE.MeshStandardMaterial({color:0x0d0d10, metalness:0.6, roughness:0.35})));
-    const label = new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.1,32), goldMat); label.position.y=0.02; grp.add(label);
+    grp.add(new THREE.Mesh(new THREE.CylinderGeometry(1.3,1.3,0.08,LOW_POWER?24:48), new THREE.MeshStandardMaterial({color:0x0d0d10, metalness:0.6, roughness:0.35})));
+    const label = new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.1,LOW_POWER?16:32), goldMat); label.position.y=0.02; grp.add(label);
     mesh = grp; mesh.rotation.x = Math.PI/2.6;
   }else{
     const grp = new THREE.Group();
@@ -1065,21 +1115,23 @@ function mount3DIcon(canvasId, type){
   }
   scene.add(mesh);
   function animate(){
+    requestAnimationFrame(animate);
+    // Skip the actual draw call while this icon's screen isn't the one
+    // currently shown (or backgrounded/minimized) — huge CPU/GPU saving
+    // versus rendering all 5 icons forever, everywhere, the whole visit.
+    if(document.hidden) return;
+    if(screenEl && !screenEl.classList.contains('active') && !screenEl.classList.contains('leaving')) return;
     mesh.rotation.y += 0.012;
     mesh.rotation.x = 0.15 + Math.sin(performance.now()*0.0006)*0.08;
     renderer.render(scene, camera);
-    requestAnimationFrame(animate);
   }
   animate();
   function handleResize(){ const s = canvas.clientWidth || 230; renderer.setSize(s,s,false); }
   window.addEventListener('resize', handleResize, {passive:true});
   window.addEventListener('orientationchange', ()=> setTimeout(handleResize, 200));
 }
-mount3DIcon('icon-proposal','heart');
-mount3DIcon('icon-cake','cake');
-mount3DIcon('icon-gallery','gallery');
-mount3DIcon('icon-music','vinyl');
-mount3DIcon('icon-finale','firework');
+// Icons are mounted lazily from onScreenFirstEnter() below (see the
+// "cover-*" branches) rather than all being created here up front.
 
 /* =====================================================================
    ON-ENTER HANDLERS
@@ -1096,6 +1148,7 @@ function onScreenFirstEnter(id){
     });
   }
   if(id==='cover-proposal'){
+    mount3DIcon('icon-proposal','heart');
     document.getElementById('coverProposalBtn').textContent = CONFIG.covers.proposal.button;
     document.getElementById('coverProposalHint').textContent = CONFIG.covers.proposal.hint;
     typeSequence([[document.getElementById('coverProposalTitle'),CONFIG.covers.proposal.title,30],[document.getElementById('coverProposalSub'),CONFIG.covers.proposal.subtitle,24]], 250, ()=>{ document.getElementById('coverProposalBtnWrap').classList.add('show'); });
@@ -1107,24 +1160,28 @@ function onScreenFirstEnter(id){
     document.getElementById('no-wink').textContent = CONFIG.noWinkText;
   }
   if(id==='cover-cake'){
+    mount3DIcon('icon-cake','cake');
     document.getElementById('coverCakeBtn').textContent = CONFIG.covers.cake.button;
     document.getElementById('coverCakeHint').textContent = CONFIG.covers.cake.hint;
     typeSequence([[document.getElementById('coverCakeTitle'),CONFIG.covers.cake.title,30],[document.getElementById('coverCakeSub'),CONFIG.covers.cake.subtitle,24]], 250, ()=>{ document.getElementById('coverCakeBtnWrap').classList.add('show'); });
   }
   if(id==='cake'){ initCake(); }
   if(id==='cover-gallery'){
+    mount3DIcon('icon-gallery','gallery');
     document.getElementById('coverGalleryBtn').textContent = CONFIG.covers.gallery.button;
     document.getElementById('coverGalleryHint').textContent = CONFIG.covers.gallery.hint;
     typeSequence([[document.getElementById('coverGalleryTitle'),CONFIG.covers.gallery.title,30],[document.getElementById('coverGallerySub'),CONFIG.covers.gallery.subtitle,24]], 250, ()=>{ document.getElementById('coverGalleryBtnWrap').classList.add('show'); });
   }
   if(id==='gallery'){ initGallery(); }
   if(id==='cover-music'){
+    mount3DIcon('icon-music','vinyl');
     document.getElementById('coverMusicBtn').textContent = CONFIG.covers.music.button;
     document.getElementById('coverMusicHint').textContent = CONFIG.covers.music.hint;
     typeSequence([[document.getElementById('coverMusicTitle'),CONFIG.covers.music.title,30],[document.getElementById('coverMusicSub'),CONFIG.covers.music.subtitle,24]], 250, ()=>{ document.getElementById('coverMusicBtnWrap').classList.add('show'); });
   }
   if(id==='music'){ initPlayer(); }
   if(id==='cover-finale'){
+    mount3DIcon('icon-finale','firework');
     document.getElementById('coverFinaleBtn').textContent = CONFIG.covers.finale.button;
     document.getElementById('coverFinaleHint').textContent = CONFIG.covers.finale.hint;
     typeSequence([[document.getElementById('coverFinaleTitle'),CONFIG.covers.finale.title,30],[document.getElementById('coverFinaleSub'),CONFIG.covers.finale.subtitle,24]], 250, ()=>{ document.getElementById('coverFinaleBtnWrap').classList.add('show'); });
@@ -1224,7 +1281,7 @@ function initCake(){
         const data=new Uint8Array(analyser.frequencyBinCount);
         let strong=0;
         (function poll(){
-          if(finished){ stream.getTracks().forEach(t=>t.stop()); return; }
+          if(finished || currentScreenId!=='cake'){ stream.getTracks().forEach(t=>t.stop()); return; }
           analyser.getByteFrequencyData(data);
           const low=data.slice(0,10).reduce((a,b)=>a+b,0)/10;
           if(low>140) strong++; else strong=Math.max(0,strong-1);
@@ -1390,6 +1447,7 @@ function initGallery(){
     clearTimeout(timer);
     if(!playing) return;
     timer = setTimeout(()=>{
+      if(currentScreenId!=='gallery') return; // visitor navigated away (e.g. via nav dots) — don't keep advancing off-screen
       if(idx >= photos.length-1) openCheckpoint();
       else transitionTo(idx+1);
     }, HOLD_MS);
@@ -1542,14 +1600,20 @@ function initFinale(){
     }
   }
   function loop(){
+    requestAnimationFrame(loop);
+    // Skip work while backgrounded or once the visitor has navigated away
+    // from the finale screen (e.g. via the nav dots) — otherwise this 2D
+    // canvas loop and its ever-growing particle list run forever, for the
+    // rest of the visit, even on a screen nobody can see anymore.
+    if(document.hidden) return;
+    if(currentScreenId!=='finale') return;
     ctx.fillStyle='rgba(10,2,5,0.18)'; ctx.fillRect(0,0,canvas.width,canvas.height);
     particles.forEach(p=>{ p.x+=p.vx; p.y+=p.vy; p.vy+=0.035; p.life-=0.014; ctx.globalAlpha=Math.max(p.life,0); ctx.fillStyle=p.color; ctx.beginPath(); ctx.arc(p.x,p.y,2.4,0,Math.PI*2); ctx.fill(); });
     ctx.globalAlpha=1; particles=particles.filter(p=>p.life>0);
-    requestAnimationFrame(loop);
   }
   loop();
   explode(canvas.width*0.5, canvas.height*0.35);
-  setInterval(()=>{ explode(Math.random()*canvas.width*0.8+canvas.width*0.1, Math.random()*canvas.height*0.5+canvas.height*0.1); }, 1400);
+  setInterval(()=>{ if(currentScreenId!=='finale' || document.hidden) return; explode(Math.random()*canvas.width*0.8+canvas.width*0.1, Math.random()*canvas.height*0.5+canvas.height*0.1); }, 1400);
   setTimeout(()=>{
     typeInto(document.getElementById('final-message'), CONFIG.finalMessage, 22, ()=>{
       typeInto(document.getElementById('finalSign'), CONFIG.finalSign, 26);
