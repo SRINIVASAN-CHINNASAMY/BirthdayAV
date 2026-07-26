@@ -185,7 +185,7 @@ img{max-width:100%;display:block;}
 .gate-screen{z-index:20;}
 .gate-tip{font-size:13px;color:var(--champagne);opacity:.7;margin-top:10px;font-style:italic;}
 .gate-input-row{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center;}
-.gate-input{font-family:'Inter',sans-serif;font-size:16px;padding:13px 20px;border-radius:100px;border:1px solid var(--glass-brd);background:rgba(251,243,231,0.07);color:var(--cream);min-width:220px;max-width:80vw;text-align:center;outline:none;transition:border-color .3s var(--ease), background .3s var(--ease);}
+.gate-input{font-family:'Inter',sans-serif;font-size:16px;padding:13px 20px;border-radius:100px;border:1px solid var(--glass-brd);background:rgba(251,243,231,0.07);color:var(--cream);min-width:220px;max-width:80vw;text-align:center;outline:none;transition:border-color .3s var(--ease), background .4s var(--ease);}
 .gate-input::placeholder{color:rgba(247,236,217,0.4);}
 .gate-input:focus{border-color:var(--gold);background:rgba(251,243,231,0.12);}
 .gate-response{margin-top:22px;font-size:18px;color:var(--gold);min-height:1.6em;font-style:italic;}
@@ -574,7 +574,7 @@ img{max-width:100%;display:block;}
 <!-- ============================== MUSIC ============================== -->
 <section id="music" class="screen">
   <div class="player-shell glass-panel">
-    <span class="eyebrow">our soundtrack</span>
+    <span class="eyebrow">Your Fav soundtrack</span>
     <div class="vinyl-wrap">
       <div class="vinyl" id="vinyl"><div class="vinyl-label"></div></div>
       <div class="tonearm" id="tonearm"></div>
@@ -651,7 +651,7 @@ const CONFIG = {
     wrongResponse:"Ohhh... then am I not your best friend? 😒",
     // shown if the name matches neither list — they get to try again
     retryResponse:"Hmm, that doesn't sound right... ask them again? 🤔",
-    unlockDelay:1600 // ms to show the response before moving to the landing page
+    unlockDelay:3200 // ms to show the response before moving to the landing page
   },
 
   /* ---------------------------------------------------------------------
@@ -697,14 +697,14 @@ const CONFIG = {
 
   proposalQuestion:"Will you be my forever?",
   proposalNote:"Hiiii My Dear Girl ❤️🥹, Wish you a veryyy veryyy Happyy Birthday daa (Kuttachi)! 🎉🥳 I genuinely hope this year brings you lots of happiness, peace, success, good health, and everything you've been wishing for. ✨💖 Have an amazing year ahead! 🌸First of all, thank you so much for being a part of my life. ❤️ One thing I really wanted to tell you is... I truly admire the way you're handling everything in your life now. 💯✨ The maturity you've developed over the years is something I genuinely respect.. 😊🌼 And... thank you for being the best friend I've ever had. 🤗❤️ Can you believe it? 😭 It's been almost 10 years since I first met you! ⏳❤️ Time flew so fast, but every memory with you is still fresh in my mind. In these years(Mostly Last year), you've given me so many beautiful memories. 🥹💖 You have been my... Listener,Motivator,Support System,Comedy Piece,😒 Sometimes my Irritator too! (Adhuvum romba dedication-oda! 🤭😂) But honestly... life would've been so different without you. ❤️ If you weren't in my life, I'm sure I wouldn't have learned many things that I know today. You taught me so much without even realizing it. Every conversation, every fight, every laugh, every silly moment... everything has become a beautiful memory for me. 🥹✨ You've gifted me so many things over the years. ❤️ So this time, I thought... let me make a small gift for you with lots of love. 🫶",
-  yesEmoji:"💍",
+  yesEmoji:"💗😍💕",
   noEmoji:"😉",
   noWinkText:"no other option… sorry 😉",
 
   cakeTitle:"Make a wish",
   cakeHint:"Make a wish and blow it out",
   candleCount:5,
-  cakeDoneEmoji:"🎉",
+  cakeDoneEmoji:"💫🎉💕",
 
   // 10 photos supported out of the box. Put your image files inside the
   // assets/images/ folder in the GitHub repo, named exactly photo-01
@@ -712,16 +712,16 @@ const CONFIG = {
   // .gif — the site automatically finds whichever extension you used, so
   // you never need to touch this list). Update each caption below too.
   photos:[
-    { src:"assets/images/photo-01", caption:"1st Photo I collected" },
-    { src:"assets/images/photo-02", caption:"With Moni" },
-    { src:"assets/images/photo-03", caption:"Her" },
-    { src:"assets/images/photo-04", caption:"Her" },
-    { src:"assets/images/photo-05", caption:"Her" },
-    { src:"assets/images/photo-06", caption:"Her" },
-    { src:"assets/images/photo-07", caption:"Her" },
-    { src:"assets/images/photo-08", caption:"US (1st Photo)" },
-    { src:"assets/images/photo-09", caption:"US" },
-    { src:"assets/images/photo-10", caption:"Angel" }
+    { src:"assets/images/photo-01", caption:"✨" },
+    { src:"assets/images/photo-02", caption:"😍" },
+    { src:"assets/images/photo-03", caption:"🩷" },
+    { src:"assets/images/photo-04", caption:"💜" },
+    { src:"assets/images/photo-05", caption:"💖" },
+    { src:"assets/images/photo-06", caption:"💫" },
+    { src:"assets/images/photo-07", caption:"💗" },
+    { src:"assets/images/photo-08", caption:"😘" },
+    { src:"assets/images/photo-09", caption:"🥰" },
+    { src:"assets/images/photo-10", caption:"💕" }
   ],
   // background music while photos play — put the audio file in assets/audio/
   galleryMusicSrc:"assets/audio/gallery-music.mp3",
@@ -734,7 +734,7 @@ const CONFIG = {
   checkpointNoResponse:"okay, we'll make more memories later...",
 
   // put your song's audio file at assets/audio/our-song.mp3
-  musicTrack:{ title:"Add Your Song Title", artist:"Add the artist name", src:"assets/audio/our-song.mp3" },
+  musicTrack:{ title:"Visiri 🌻 ", artist:"As of now Dedicated by Me😉", src:"assets/audio/our-song.mp3" },
   musicPlaceholderNote:"Add your song's audio file in CONFIG to bring this to life.",
   // the "One Last Thing" button on the music page only appears once the
   // song has played for at least this many seconds (or finished, or if no
@@ -742,14 +742,14 @@ const CONFIG = {
   minListenSeconds:15,
 
   finalMessage:"I have complete confidence that you will achieve everything you truly want in life. I believe this journey has taught you so many valuable lessons and has made you stronger in ways you may not even realize.As you always say, Do what your heart feels is right. Keep believing in that. If you are genuinely happy and satisfied with whatever you choose to do, no matter what it is, I'll always be happy for you. I just hope that one day, time will be in our favor.I haven't written a letter Physically , Hope you will accept this instead of that.Once again,Iniya Pirandhanaal Vaazhthukkal, Darlo! ❤️",
-  finalSign:"— always yours",
+  finalSign:"— always your Admirer 🫰💓",
   replayEmoji:"🎆"
 };
 
 /* =====================================================================
    TYPEWRITER — text appears letter by letter, as if being written live.
 ===================================================================== */
-function typeInto(el, text, speed=26, onDone){
+function typeInto(el, text, speed=10, onDone){
   el.textContent = "";
   const cursor = document.createElement("span");
   cursor.className = "typing-cursor";
@@ -771,7 +771,7 @@ function typeSequence(triples, gap=250, onAllDone){
   (function next(){
     if(idx >= triples.length){ if(onAllDone) onAllDone(); return; }
     const [el, text, speed] = triples[idx];
-    typeInto(el, text, speed || 26, ()=>{ idx++; setTimeout(next, gap); });
+    typeInto(el, text, speed || 10, ()=>{ idx++; setTimeout(next, gap); });
   })();
 }
 
@@ -1138,7 +1138,7 @@ function mount3DIcon(canvasId, type){
 ===================================================================== */
 function onScreenFirstEnter(id){
   if(id==='gate'){
-    typeSequence([[document.getElementById('gateQuestion'),CONFIG.gate.question,30],[document.getElementById('gateTip'),CONFIG.gate.tip,22]], 250, ()=>{
+    typeSequence([[document.getElementById('gateQuestion'),CONFIG.gate.question,40],[document.getElementById('gateTip'),CONFIG.gate.tip,30]], 250, ()=>{
       document.getElementById('gateInputRow').classList.add('show');
       // Only auto-focus (and thereby auto-open the keyboard) on devices with
       // a real pointer/hover, i.e. desktops. On touch devices, popping the
@@ -1151,10 +1151,10 @@ function onScreenFirstEnter(id){
     mount3DIcon('icon-proposal','heart');
     document.getElementById('coverProposalBtn').textContent = CONFIG.covers.proposal.button;
     document.getElementById('coverProposalHint').textContent = CONFIG.covers.proposal.hint;
-    typeSequence([[document.getElementById('coverProposalTitle'),CONFIG.covers.proposal.title,30],[document.getElementById('coverProposalSub'),CONFIG.covers.proposal.subtitle,24]], 250, ()=>{ document.getElementById('coverProposalBtnWrap').classList.add('show'); });
+    typeSequence([[document.getElementById('coverProposalTitle'),CONFIG.covers.proposal.title,45],[document.getElementById('coverProposalSub'),CONFIG.covers.proposal.subtitle,24]], 250, ()=>{ document.getElementById('coverProposalBtnWrap').classList.add('show'); });
   }
   if(id==='proposal'){
-    typeSequence([[document.getElementById('proposal-question'),CONFIG.proposalQuestion,34],[document.getElementById('proposal-note'),CONFIG.proposalNote,20]], 250, ()=>{
+    typeSequence([[document.getElementById('proposal-question'),CONFIG.proposalQuestion,34],[document.getElementById('proposal-note'),CONFIG.proposalNote,40]], 250, ()=>{
       document.getElementById('proposalButtons').classList.add('show');
     });
     document.getElementById('no-wink').textContent = CONFIG.noWinkText;
@@ -1184,7 +1184,7 @@ function onScreenFirstEnter(id){
     mount3DIcon('icon-finale','firework');
     document.getElementById('coverFinaleBtn').textContent = CONFIG.covers.finale.button;
     document.getElementById('coverFinaleHint').textContent = CONFIG.covers.finale.hint;
-    typeSequence([[document.getElementById('coverFinaleTitle'),CONFIG.covers.finale.title,30],[document.getElementById('coverFinaleSub'),CONFIG.covers.finale.subtitle,24]], 250, ()=>{ document.getElementById('coverFinaleBtnWrap').classList.add('show'); });
+    typeSequence([[document.getElementById('coverFinaleTitle'),CONFIG.covers.finale.title,45],[document.getElementById('coverFinaleSub'),CONFIG.covers.finale.subtitle,40]], 250, ()=>{ document.getElementById('coverFinaleBtnWrap').classList.add('show'); });
   }
   if(id==='finale'){ initFinale(); }
 }
